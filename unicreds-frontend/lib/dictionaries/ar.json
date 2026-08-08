@@ -1,0 +1,217 @@
+{
+  "meta": {
+    "title": "يوني كريدز - شهادات أكاديمية موثقة عبر البلوكتشين",
+    "description": "منصة بلوكتشين آمنة لإصدار الشهادات الأكاديمية والتحقق منها."
+  },
+  "hero": {
+    "phrases": [
+      {
+        "text": "مرحباً بك في UniCreds",
+        "hasIcon": true
+      },
+      {
+        "text": "كل شهادة موثّقة على السلسلة، تحقّق فوري، وتزوير مستحيل.",
+        "hasIcon": false
+      }
+    ]
+  },
+  "branding": "مدعوم بتقنية البلوكتشين",
+  "systemPortalLabel": "بوابة النظام",
+  "accessPortal": "فتح البوابة",
+  "portals": {
+    "verify": {
+      "title": "التحقق من الشهادة",
+      "description": "تأكد من صحة أي شهادة خلال ثوانٍ عبر مطابقة بصمتها التشفيرية على شبكة إيثيريوم."
+    },
+    "university": {
+      "title": "لوحة تحكم الجامعة",
+      "description": "أصدر الشهادات الرقمية واربطها بالسلسلة وألغِها متى شئت، بواجهة مصمّمة لموظفي التسجيل والقبول لا للمبرمجين."
+    },
+    "student": {
+      "title": "الملف الشخصي للطالب",
+      "description": "شهاداتك في محفظتك. اعرضها، أدرها، وشاركها بالطريقة التي تناسبك."
+    },
+    "admin": {
+      "title": "بوابة الأدمن",
+      "description": "أدر سجل الجامعات المعتمدة: سجّل جهات إصدار جديدة، وفعّل أو أوقف صلاحياتها في أي وقت."
+    }
+  },
+  "dashboard": {
+    "nav": {
+      "verify": "التحقق",
+      "university": "الجامعة",
+      "student": "الملف الشخصي",
+      "network": "الشبكة الرئيسية نشطة",
+      "admin": "الأدمن"
+    },
+    "header": {
+      "wallet": "اتصل بالمحفظة"
+    },
+    "verify": {
+      "title": "التحقق من الشهادة",
+      "subtitle": "وثّق صحة السجلات الأكاديمية بأمان عبر مطابقة البصمة التشفيرية أو معرّفات IPFS (CID).",
+      "placeholder": "أدخل رقم المعاملة، أو CID (مثل Qm...)، أو عنوان الطالب...",
+      "button": "توثيق",
+      "verifying": "جارٍ التحقق على السلسلة...",
+      "resultLabel": "نتيجة التحقق",
+      "valid": "سارية",
+      "fields": {
+        "issuerAuthority": "الجهة المُصدرة",
+        "credentialType": "نوع الشهادة",
+        "studentAddress": "عنوان الطالب",
+        "hash": "البصمة التشفيرية",
+        "issueDate": "تاريخ الإصدار"
+      },
+      "viewOriginal": "عرض المستند الأصلي على IPFS",
+      "sample": {
+        "issuer": "جامعة HIAST",
+        "issuerAddress": "0x5fbdb2315...180aa3",
+        "credentialType": "بكالوريوس هندسة",
+        "studentAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "hash": "0xf29b9cbebf767a43b25cf65d4ef298...",
+        "date": "15 مايو 2026 (الكتلة #3)"
+      }
+    },
+    "university": {
+      "badge": "صلاحية الإصدار مفعّلة",
+      "title": "بوابة الجامعة",
+      "connectedContract": "العقد المتصل",
+      "contractAddress": "0x5fbdb2315...180aa3",
+      "formTitle": "إصدار شهادة",
+      "labels": {
+        "studentAddress": "عنوان الطالب",
+        "studentId": "الرقم الجامعي",
+        "major": "التخصص",
+        "gpa": "المعدل التراكمي",
+        "document": "المستند (PDF)"
+      },
+      "upload": "رفع",
+      "submit": "توليد البصمة والإصدار",
+      "submitting": "جارٍ الربط بالسلسلة...",
+      "submitted": "تم الإصدار بنجاح",
+      "tableTitle": "السجلات الأخيرة",
+      "totalLabel": "الإجمالي",
+      "columns": {
+        "studentId": "الرقم الجامعي",
+        "hash": "بصمة الالتزام",
+        "status": "الحالة",
+        "action": "إجراء"
+      },
+      "statusValid": "سارية",
+      "statusRevoked": "ملغاة",
+      "revoke": "إلغاء",
+      "rows": [
+        {
+          "id": "HIAST-2026-001",
+          "hash": "0xf29b9cbebf...",
+          "status": "valid"
+        },
+        {
+          "id": "HIAST-2026-042",
+          "hash": "0xab33740197...",
+          "status": "valid"
+        },
+        {
+          "id": "HIAST-2025-112",
+          "hash": "0x892ab20e7f...",
+          "status": "revoked",
+          "revokeReason": "بيانات غير مطابقة"
+        }
+      ],
+      "revokeTitle": "إلغاء شهادة",
+      "revokeDescription": "سيتم تغيير حالة السجل إلى ملغاة مع حفظ سبب الإلغاء للسجل:",
+      "revocationReason": "سبب الإلغاء",
+      "revocationPlaceholder": "مثال: خطأ في بيانات الطالب أو طلب رسمي من الجهة المصدرة...",
+      "confirmRevoke": "تأكيد الإلغاء",
+      "cancel": "إلغاء الأمر",
+      "searchPlaceholder": "ابحث بعنوان الطالب أو بصمة الشهادة أو معرّف IPFS...",
+      "searchEmpty": "لا توجد سجلات مطابقة لبحثك."
+    },
+    "student": {
+      "walletTitle": "محفظة ذاتية السيادة",
+      "copyAddress": "نسخ العنوان",
+      "sectionTitle": "شهاداتي الموثقة",
+      "verifiedLabel": "موثقة",
+      "credentials": [
+        {
+          "verified": true,
+          "title": "بكالوريوس هندسة",
+          "issuer": "جامعة HIAST",
+          "major": "هندسة الحاسوب",
+          "gpa": "3.95",
+          "issueDate": "مايو 2026",
+          "studentAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "hash": "0xf29b9cbebf767a43b25cf65d4ef298..."
+        },
+        {
+          "verified": true,
+          "title": "أنظمة البلوكتشين المتقدمة",
+          "issuer": "أكاديمية UniCreds",
+          "major": "الأنظمة الموزعة",
+          "gpa": "3.88",
+          "issueDate": "يناير 2026",
+          "studentAddress": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "hash": "0xab33740197f0d8cc9a19df2aa9..."
+        },
+        {
+          "verified": true,
+          "title": "مدقق عقود ذكية معتمد",
+          "issuer": "جامعة HIAST",
+          "major": "مسار الأمن الرقمي",
+          "gpa": "3.91",
+          "issueDate": "سبتمبر 2025",
+          "studentAddress": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "hash": "0x892ab20e7f1160dd0338404a..."
+        }
+      ],
+      "labels": {
+        "major": "التخصص",
+        "gpa": "المعدل",
+        "issueDate": "تاريخ الإصدار"
+      },
+      "viewProof": "عرض الإثبات",
+      "share": "مشاركة",
+      "emptyTitle": "لا توجد شهادات لهذه المحفظة",
+      "emptyDescription": "اتصل بالمحفظة التي استلمت الشهادات الموثقة لعرضها هنا."
+    },
+    "admin": {
+      "badge": "بوابة الأدمن",
+      "title": "إدارة سجل الجامعات",
+      "connectedContract": "العقد المتصل",
+      "registerTitle": "تسجيل جامعة جديدة",
+      "registerDescription": "أضف جهة إصدار جديدة إلى السجل بمنحها عنوان محفظتها. ستحصل تلقائيًا على صلاحية إصدار الشهادات.",
+      "labels": {
+        "universityAddress": "عنوان محفظة الجامعة",
+        "name": "اسم الجامعة",
+        "location": "الموقع"
+      },
+      "register": "تسجيل الجامعة",
+      "registering": "جارٍ التسجيل...",
+      "registered": "تم تسجيل الجامعة ومنحها صلاحية الإصدار بنجاح.",
+      "searchTitle": "البحث عن جامعة",
+      "searchDescription": "أدخل اسم الجامعة أو عنوان محفظتها لعرض ملفها وحالتها والتحكم بصلاحيتها.",
+      "searchPlaceholder": "اسم الجامعة أو عنوان المحفظة",
+      "search": "بحث",
+      "searching": "جارٍ البحث...",
+      "notFound": "لا توجد جامعة مسجّلة تطابق هذا الاسم أو العنوان.",
+      "fields": {
+        "name": "الاسم",
+        "location": "الموقع",
+        "status": "الحالة",
+        "registeredAt": "تاريخ التسجيل",
+        "address": "العنوان",
+        "suspensionReason": "سبب الإيقاف"
+      },
+      "statusActive": "نشطة",
+      "statusSuspended": "موقوفة",
+      "activate": "تفعيل",
+      "suspend": "إيقاف",
+      "processing": "جارٍ التنفيذ...",
+      "suspendTitle": "إيقاف الجامعة",
+      "suspendDescription": "سيؤدي هذا إلى إيقاف الجامعة ومنعها من إصدار الشهادات أو إلغائها بالنسبة إلى:",
+      "suspendReasonLabel": "سبب الإيقاف",
+      "suspendReasonPlaceholder": "مثال: مشكلة امتثال، وثائق غير صحيحة، أو طلب إداري...",
+      "confirmSuspend": "تأكيد الإيقاف"
+    }
+  }
+}

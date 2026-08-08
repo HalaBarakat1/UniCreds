@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: unicreds-frontend
+    runtime: node
+    plan: free
+    # rootDir: unicreds-frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_CONTRACT_ADDRESS
+        sync: false
+      - key: NEXT_PUBLIC_RPC_URL
+        sync: false
+      - key: NEXT_PUBLIC_DEPLOYMENT_BLOCK
+        sync: false
+      - key: PINATA_JWT
+        sync: false
