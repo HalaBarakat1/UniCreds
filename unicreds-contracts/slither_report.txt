@@ -1,0 +1,126 @@
+'npx hardhat clean' running (wd: E:\Hala\Project\1.Fourth-Year-Project\UniCreds\unicreds-contracts)
+'npx hardhat clean --global' running (wd: E:\Hala\Project\1.Fourth-Year-Project\UniCreds\unicreds-contracts)
+Unexpected output from Hardhat, trying to parse it anyway: ◇ injected env (3) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+{"root":"E:\\Hala\\Project\\1.Fourth-Year-Project\\UniCreds\\unicreds-contracts","configFile":"E:\\Hala\\Project\\1.Fourth-Year-Project\\UniCreds\\unicreds-contracts\\hardhat.config.ts","sourc
+es":"E:\\Hala\\Project\\1.Fourth-Year-Project\\UniCreds\\unicreds-contracts\\contracts","cache":"E:\\Hala\\Project\\1.Fourth-Year-Project\\UniCreds\\unicreds-contracts\\cache","artifacts":"E:\
+\Hala\\Project\\1.Fourth-Year-Project\\UniCreds\\unicreds-contracts\\artifacts","tests":"E:\\Hala\\Project\\1.Fourth-Year-Project\\UniCreds\\unicreds-contracts\\test","ignition":"E:\\Hala\\Pro
+ject\\1.Fourth-Year-Project\\UniCreds\\unicreds-contracts\\ignition"}
+
+Problem deserializing hardhat configuration, using defaults: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+'npx hardhat compile --force' running (wd: E:\Hala\Project\1.Fourth-Year-Project\UniCreds\unicreds-contracts)
+INFO:Detectors:
+Detector: incorrect-equality
+University.verifyCertificate(bytes32) (contracts/University.sol#160-168) uses a dangerous strict equality:
+        - cert.issueDate == 0 (contracts/University.sol#163)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dangerous-strict-equalities
+INFO:Detectors:
+Detector: timestamp
+University.registerUniversity(address,string,string) (contracts/University.sol#40-59) uses timestamp for comparisons
+        Dangerous comparisons:
+        - require(bool,string)(universityRegistry[_universityAddress].registrationDate == 0,Already registered) (contracts/University.sol#46)
+University.toggleUniversityStatus(address,string) (contracts/University.sol#61-85) uses timestamp for comparisons
+        Dangerous comparisons:
+        - require(bool,string)(universityRegistry[_universityAddress].registrationDate != 0,University not registered) (contracts/University.sol#65)
+University.issueCertificate(bytes32,address,string,string,string,string) (contracts/University.sol#109-144) uses timestamp for comparisons
+        Dangerous comparisons:
+        - require(bool,string)(universityRegistry[msg.sender].isActive == true,Issuer is suspended in registry) (contracts/University.sol#117)
+        - require(bool,string)(certificates[_certHash].issueDate == 0,Certificate hash already exists) (contracts/University.sol#130)
+University.revokeCertificate(bytes32,string) (contracts/University.sol#146-158) uses timestamp for comparisons
+        Dangerous comparisons:
+        - require(bool,string)(certificates[_certHash].issuer == msg.sender,Not original issuer) (contracts/University.sol#150)
+        - require(bool,string)(certificates[_certHash].issueDate != 0,Certificate does not exist) (contracts/University.sol#151)
+        - require(bool,string)(certificates[_certHash].isValid == true,Certificate is already revoked) (contracts/University.sol#152)
+University.verifyCertificate(bytes32) (contracts/University.sol#160-168) uses timestamp for comparisons
+        Dangerous comparisons:
+        - cert.issueDate == 0 (contracts/University.sol#163)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+INFO:Detectors:
+Detector: boolean-equal
+University.issueCertificate(bytes32,address,string,string,string,string) (contracts/University.sol#109-144) compares to a boolean constant:
+        -require(bool,string)(universityRegistry[msg.sender].isActive == true,Issuer is suspended in registry) (contracts/University.sol#117)
+University.revokeCertificate(bytes32,string) (contracts/University.sol#146-158) compares to a boolean constant:
+        -require(bool,string)(certificates[_certHash].isValid == true,Certificate is already revoked) (contracts/University.sol#152)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#boolean-equality
+INFO:Detectors:
+Detector: pragma
+4 different versions of Solidity are used:
+        - Version constraint ^0.8.20 is used by:
+                -^0.8.20 (node_modules/@openzeppelin/contracts/access/AccessControl.sol#4)
+                -^0.8.20 (node_modules/@openzeppelin/contracts/utils/Context.sol#4)
+                -^0.8.20 (node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol#4)
+        - Version constraint >=0.8.4 is used by:
+                ->=0.8.4 (node_modules/@openzeppelin/contracts/access/IAccessControl.sol#4)
+        - Version constraint >=0.4.16 is used by:
+                ->=0.4.16 (node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol#4)
+        - Version constraint ^0.8.28 is used by:
+                -^0.8.28 (contracts/University.sol#2)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#different-pragma-directives-are-used
+INFO:Detectors:
+Detector: solc-version
+Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)
+        - VerbatimInvalidDeduplication
+        - FullInlinerNonExpressionSplitArgumentEvaluationOrder
+        - MissingSideEffectsOnSelectorAccess.
+It is used by:
+        - ^0.8.20 (node_modules/@openzeppelin/contracts/access/AccessControl.sol#4)
+        - ^0.8.20 (node_modules/@openzeppelin/contracts/utils/Context.sol#4)
+        - ^0.8.20 (node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol#4)
+Version constraint >=0.8.4 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)
+        - FullInlinerNonExpressionSplitArgumentEvaluationOrder
+        - MissingSideEffectsOnSelectorAccess
+        - AbiReencodingHeadOverflowWithStaticArrayCleanup
+        - DirtyBytesArrayToStorage
+        - DataLocationChangeInInternalOverride
+        - NestedCalldataArrayAbiReencodingSizeValidation
+        - SignedImmutables.
+It is used by:
+        - >=0.8.4 (node_modules/@openzeppelin/contracts/access/IAccessControl.sol#4)
+Version constraint >=0.4.16 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)
+        - DirtyBytesArrayToStorage
+        - ABIDecodeTwoDimensionalArrayMemory
+        - KeccakCaching
+        - EmptyByteArrayCopy
+        - DynamicArrayCleanup
+        - ImplicitConstructorCallvalueCheck
+        - TupleAssignmentMultiStackSlotComponents
+        - MemoryArrayCreationOverflow
+        - privateCanBeOverridden
+        - SignedArrayStorageCopy
+        - ABIEncoderV2StorageArrayWithMultiSlotElement
+        - DynamicConstructorArgumentsClippedABIV2
+        - UninitializedFunctionPointerInConstructor_0.4.x
+        - IncorrectEventSignatureInLibraries_0.4.x
+        - ExpExponentCleanup
+        - NestedArrayFunctionCallDecoder
+        - ZeroFunctionSelector.
+It is used by:
+        - >=0.4.16 (node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol#4)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity
+INFO:Detectors:
+Detector: naming-convention
+Parameter University.registerUniversity(address,string,string)._universityAddress (contracts/University.sol#41) is not in mixedCase
+Parameter University.registerUniversity(address,string,string)._name (contracts/University.sol#42) is not in mixedCase
+Parameter University.registerUniversity(address,string,string)._location (contracts/University.sol#43) is not in mixedCase
+Parameter University.toggleUniversityStatus(address,string)._universityAddress (contracts/University.sol#61) is not in mixedCase
+Parameter University.toggleUniversityStatus(address,string)._reason (contracts/University.sol#61) is not in mixedCase
+Parameter University.generateCertificateHash(address,address,string,string,string,string,uint256)._issuer (contracts/University.sol#88) is not in mixedCase
+Parameter University.generateCertificateHash(address,address,string,string,string,string,uint256)._student (contracts/University.sol#89) is not in mixedCase
+Parameter University.generateCertificateHash(address,address,string,string,string,string,uint256)._studentId (contracts/University.sol#90) is not in mixedCase
+Parameter University.generateCertificateHash(address,address,string,string,string,string,uint256)._major (contracts/University.sol#91) is not in mixedCase
+Parameter University.generateCertificateHash(address,address,string,string,string,string,uint256)._gpa (contracts/University.sol#92) is not in mixedCase
+Parameter University.generateCertificateHash(address,address,string,string,string,string,uint256)._ipfsCID (contracts/University.sol#93) is not in mixedCase
+Parameter University.generateCertificateHash(address,address,string,string,string,string,uint256)._certificateCounter (contracts/University.sol#94) is not in mixedCase
+Parameter University.issueCertificate(bytes32,address,string,string,string,string)._certHash (contracts/University.sol#110) is not in mixedCase
+Parameter University.issueCertificate(bytes32,address,string,string,string,string)._student (contracts/University.sol#111) is not in mixedCase
+Parameter University.issueCertificate(bytes32,address,string,string,string,string)._studentId (contracts/University.sol#112) is not in mixedCase
+Parameter University.issueCertificate(bytes32,address,string,string,string,string)._major (contracts/University.sol#113) is not in mixedCase
+Parameter University.issueCertificate(bytes32,address,string,string,string,string)._gpa (contracts/University.sol#114) is not in mixedCase
+Parameter University.issueCertificate(bytes32,address,string,string,string,string)._ipfsCID (contracts/University.sol#115) is not in mixedCase
+Parameter University.revokeCertificate(bytes32,string)._certHash (contracts/University.sol#146) is not in mixedCase
+Parameter University.revokeCertificate(bytes32,string)._reason (contracts/University.sol#146) is not in mixedCase
+Parameter University.verifyCertificate(bytes32)._certHash (contracts/University.sol#160) is not in mixedCase
+Parameter University.getUniversityProfile(address)._universityAddress (contracts/University.sol#170) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
+INFO:Slither:. analyzed (6 contracts with 102 detectors), 34 result(s) found
+
