@@ -1,0 +1,217 @@
+{
+  "meta": {
+    "title": "UniCreds - Blockchain Academic Credentials",
+    "description": "Secure blockchain platform for issuing and verifying academic credentials."
+  },
+  "hero": {
+    "phrases": [
+      {
+        "text": "Welcome To UniCreds",
+        "hasIcon": true
+      },
+      {
+        "text": "Every degree anchored on-chain, instant to verify, impossible to forge.",
+        "hasIcon": false
+      }
+    ]
+  },
+  "branding": "Powered by Blockchain",
+  "systemPortalLabel": "System Portal",
+  "accessPortal": "Open Portal",
+  "portals": {
+    "verify": {
+      "title": "Verify Credential",
+      "description": "Confirm any degree's authenticity in seconds by matching its cryptographic fingerprint on the Ethereum network."
+    },
+    "university": {
+      "title": "University Dashboard",
+      "description": "Issue, anchor, and revoke digital degrees, built for registrars and admissions staff, not developers."
+    },
+    "student": {
+      "title": "Student Profile",
+      "description": "Your degrees, in your wallet. View, manage, and share them on your own terms."
+    },
+    "admin": {
+      "title": "Admin Portal",
+      "description": "Manage the registry of approved universities: register new issuers and activate or suspend their permissions at any time."
+    }
+  },
+  "dashboard": {
+    "nav": {
+      "verify": "Verify",
+      "university": "University",
+      "student": "Student Profile",
+      "network": "Mainnet Active",
+      "admin": "Admin"
+    },
+    "header": {
+      "wallet": "Connect wallet"
+    },
+    "verify": {
+      "title": "Verify Credential",
+      "subtitle": "Authenticate academic records securely using cryptographic hash matching or IPFS Content Identifiers (CID).",
+      "placeholder": "Enter Tx Hash, CID (e.g., Qm...), or Student Address...",
+      "button": "Authenticate",
+      "verifying": "Verifying on Chain...",
+      "resultLabel": "Verification Result",
+      "valid": "Valid",
+      "fields": {
+        "issuerAuthority": "Issuer Authority",
+        "credentialType": "Credential Type",
+        "studentAddress": "Student Address",
+        "hash": "Cryptographic Hash",
+        "issueDate": "Issue Date"
+      },
+      "viewOriginal": "View Original Document on IPFS",
+      "sample": {
+        "issuer": "HIAST University",
+        "issuerAddress": "0x5fbdb2315...180aa3",
+        "credentialType": "Bachelor of Engineering",
+        "studentAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "hash": "0xf29b9cbebf767a43b25cf65d4ef298...",
+        "date": "May 15, 2026 (Block #3)"
+      }
+    },
+    "university": {
+      "badge": "Issuer Role Active",
+      "title": "University Portal",
+      "connectedContract": "Connected Contract",
+      "contractAddress": "0x5fbdb2315...180aa3",
+      "formTitle": "Issue Credential",
+      "labels": {
+        "studentAddress": "Student Address",
+        "studentId": "Student ID",
+        "major": "Major",
+        "gpa": "GPA",
+        "document": "Document (PDF)"
+      },
+      "upload": "Upload",
+      "submit": "Generate Hash & Issue",
+      "submitting": "Anchoring on Chain...",
+      "submitted": "Issued Successfully",
+      "tableTitle": "Recent Records",
+      "totalLabel": "Total",
+      "columns": {
+        "studentId": "Student ID",
+        "hash": "Commitment Hash",
+        "status": "Status",
+        "action": "Action"
+      },
+      "statusValid": "Valid",
+      "statusRevoked": "Revoked",
+      "revoke": "Revoke",
+      "rows": [
+        {
+          "id": "HIAST-2026-001",
+          "hash": "0xf29b9cbebf...",
+          "status": "valid"
+        },
+        {
+          "id": "HIAST-2026-042",
+          "hash": "0xab33740197...",
+          "status": "valid"
+        },
+        {
+          "id": "HIAST-2025-112",
+          "hash": "0x892ab20e7f...",
+          "status": "revoked",
+          "revokeReason": "Mismatched credential data"
+        }
+      ],
+      "revokeTitle": "Revoke credential",
+      "revokeDescription": "This will mark the record as revoked and store the revocation reason for:",
+      "revocationReason": "Revocation reason",
+      "revocationPlaceholder": "Example: incorrect student data or an official issuer request...",
+      "confirmRevoke": "Confirm revocation",
+      "cancel": "Cancel",
+      "searchPlaceholder": "Search by student address, certificate hash, or IPFS CID...",
+      "searchEmpty": "No records match your search."
+    },
+    "student": {
+      "walletTitle": "Self-Sovereign Wallet",
+      "copyAddress": "Copy Address",
+      "sectionTitle": "My Verifiable Credentials",
+      "verifiedLabel": "Verified",
+      "credentials": [
+        {
+          "verified": true,
+          "title": "Bachelor of Engineering",
+          "issuer": "HIAST University",
+          "major": "Computer Engineering",
+          "gpa": "3.95",
+          "issueDate": "May 2026",
+          "studentAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "hash": "0xf29b9cbebf767a43b25cf65d4ef298..."
+        },
+        {
+          "verified": true,
+          "title": "Advanced Blockchain Systems",
+          "issuer": "UniCreds Academy",
+          "major": "Distributed Systems",
+          "gpa": "3.88",
+          "issueDate": "Jan 2026",
+          "studentAddress": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "hash": "0xab33740197f0d8cc9a19df2aa9..."
+        },
+        {
+          "verified": true,
+          "title": "Certified Smart Contract Auditor",
+          "issuer": "HIAST University",
+          "major": "Security Track",
+          "gpa": "3.91",
+          "issueDate": "Sep 2025",
+          "studentAddress": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "hash": "0x892ab20e7f1160dd0338404a..."
+        }
+      ],
+      "labels": {
+        "major": "Major",
+        "gpa": "GPA",
+        "issueDate": "Issue Date"
+      },
+      "viewProof": "View Proof",
+      "share": "Share",
+      "emptyTitle": "No credentials for this wallet",
+      "emptyDescription": "Connect the wallet that received the verifiable credentials to display them here."
+    },
+    "admin": {
+      "badge": "Admin Portal",
+      "title": "University Registry Management",
+      "connectedContract": "Connected contract",
+      "registerTitle": "Register a new university",
+      "registerDescription": "Add a new issuer to the registry by providing its wallet address. It will automatically receive certificate-issuing permission.",
+      "labels": {
+        "universityAddress": "University wallet address",
+        "name": "University name",
+        "location": "Location"
+      },
+      "register": "Register university",
+      "registering": "Registering...",
+      "registered": "University registered and granted issuing permission successfully.",
+      "searchTitle": "Search for a university",
+      "searchDescription": "Enter a university name or wallet address to view its profile, status, and control its permission.",
+      "searchPlaceholder": "University name or wallet address",
+      "search": "Search",
+      "searching": "Searching...",
+      "notFound": "No registered university matched this name or address.",
+      "fields": {
+        "name": "Name",
+        "location": "Location",
+        "status": "Status",
+        "registeredAt": "Registered at",
+        "address": "Address",
+        "suspensionReason": "Suspension reason"
+      },
+      "statusActive": "Active",
+      "statusSuspended": "Suspended",
+      "activate": "Activate",
+      "suspend": "Suspend",
+      "processing": "Processing...",
+      "suspendTitle": "Suspend university",
+      "suspendDescription": "This will suspend the university and prevent it from issuing or revoking credentials for:",
+      "suspendReasonLabel": "Suspension reason",
+      "suspendReasonPlaceholder": "Example: compliance issue, incorrect documents, or an administrative request...",
+      "confirmSuspend": "Confirm suspension"
+    }
+  }
+}

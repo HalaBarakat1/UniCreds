@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background-color: #ffffff;
+}
+
+:root {
+  --font-body: "Outfit", sans-serif;
+  --font-display: "Playfair Display", serif;
+}
+
+html[lang="ar"] {
+  --font-body: "Cairo", sans-serif;
+  --font-display: "Amiri", serif;
+}
+
+.word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(15px) scale(0.95);
+  transition:
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.5s ease;
+  filter: blur(4px);
+  margin-inline-end: 0.25em;
+}
+
+.word.in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
+}
+
+.word.out {
+  opacity: 0;
+  transform: translateY(-15px) scale(0.95);
+  filter: blur(4px);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(235, 227, 213, 0.5);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.glass-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px -10px rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.icon-wrapper {
+  transition: all 0.4s ease;
+}
+
+.glass-card:hover .icon-wrapper {
+  background-color: #d4af37;
+  color: white;
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.bg-gradient-beige {
+  background: linear-gradient(135deg, #ffffff 0%, #faf8f5 50%, #ebe3d5 100%);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(235, 227, 213, 0.6);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+}
+
+.elegant-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #d1d5db;
+  border-radius: 0;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.elegant-input:focus {
+  outline: none;
+  border-bottom-color: #d4af37;
+  box-shadow: 0 1px 0 0 #d4af37;
+}
+
+.elegant-table th {
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  color: #9ca3af;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.elegant-table tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s;
+}
+
+.elegant-table tr:hover {
+  background-color: rgba(235, 227, 213, 0.2);
+}
+
+.bg-pattern {
+  background-image: radial-gradient(#2c3333 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+  opacity: 0.02;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ebe3d5;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word,
+  .glass-card,
+  .icon-wrapper {
+    transition: none !important;
+    animation: none !important;
+  }
+}
