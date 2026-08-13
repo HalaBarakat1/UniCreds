@@ -114,7 +114,7 @@ The hash is generated in the smart contract using:
 
 ```solidity
 keccak256(
-    abi.encodePacked(
+    abi.encode(
         issuerAddress,
         studentAddress,
         studentId,
