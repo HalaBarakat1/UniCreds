@@ -3,6 +3,7 @@ import {
   Contract,
   JsonRpcProvider,
   verifyMessage,
+  isAddress,
 } from "ethers";
 
 export const runtime = "nodejs";
@@ -112,12 +113,10 @@ export async function POST(
       );
     }
 
-    let authenticatedAddress: string;
+    const authenticatedAddress =
+      addressValue.trim();
 
-    try {
-      authenticatedAddress =
-        addressValue;
-    } catch {
+    if (!isAddress(authenticatedAddress)) {
       return jsonError(
         "Invalid wallet address.",
         401,
