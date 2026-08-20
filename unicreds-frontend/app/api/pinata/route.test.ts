@@ -93,18 +93,17 @@ function setupAuthorizedIssuer() {
   );
 
   MockedContract.mockImplementation(
-    vi.fn(
-      () =>
-        ({
-          ISSUER_ROLE: vi
-            .fn()
-            .mockResolvedValue(TEST_ROLE),
+    function () {
+      return {
+        ISSUER_ROLE: vi
+          .fn()
+          .mockResolvedValue(TEST_ROLE),
 
-          hasRole: vi
-            .fn()
-            .mockResolvedValue(true),
-        }) as never,
-    ) as never,
+        hasRole: vi
+          .fn()
+          .mockResolvedValue(true),
+      };
+    } as unknown as typeof Contract,
   );
 
   mockedVerifyMessage.mockReturnValue(
@@ -118,18 +117,17 @@ function setupNonAuthorizedIssuer() {
   );
 
   MockedContract.mockImplementation(
-    vi.fn(
-      () =>
-        ({
-          ISSUER_ROLE: vi
-            .fn()
-            .mockResolvedValue(TEST_ROLE),
+    function () {
+      return {
+        ISSUER_ROLE: vi
+          .fn()
+          .mockResolvedValue(TEST_ROLE),
 
-          hasRole: vi
-            .fn()
-            .mockResolvedValue(false),
-        }) as never,
-    ) as never,
+        hasRole: vi
+          .fn()
+          .mockResolvedValue(false),
+      };
+    } as unknown as typeof Contract,
   );
 
   mockedVerifyMessage.mockReturnValue(
@@ -433,13 +431,11 @@ describe("POST /api/pinata", () => {
     );
 
     MockedContract.mockImplementation(
-      vi.fn(
-        () => {
-          throw new Error(
-            "RPC unavailable",
-          );
-        },
-      ) as never,
+      function () {
+        throw new Error(
+          "RPC unavailable",
+        );
+      } as unknown as typeof Contract,
     );
 
     const request =
