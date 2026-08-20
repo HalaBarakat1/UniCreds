@@ -1,46 +1,40 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const mockHasRole = vi.fn();
-const mockIssuerRole = vi.fn();
+import { POST } from "./route";
+import { Contract, JsonRpcProvider, verifyMessage } from "ethers";
 
 vi.mock("ethers", () => ({
+  Contract: vi.fn(),
   JsonRpcProvider: vi.fn(),
-  Contract: vi.fn(() => ({
-    ISSUER_ROLE: mockIssuerRole,
-    hasRole: mockHasRole,
-  })),
   verifyMessage: vi.fn(),
 }));
 
-import { verifyMessage } from "ethers";
-import { POST } from "./route";
-
-const mockedVerifyMessage = vi.mocked(verifyMessage);
-
-const VALID_ADDRESS =
+const TEST_ISSUER_ADDRESS =
   "0x1111111111111111111111111111111111111111";
 
-const UNAUTHORIZED_ADDRESS =
-  "0x9999999999999999999999999999999999999999";
-
-const CONTRACT_ADDRESS =
+const TEST_NON_ISSUER_ADDRESS =
   "0x2222222222222222222222222222222222222222";
 
-function createPdfFile(
+const TEST_ROLE =
+  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+const TEST_CID = "QmTestCredentialCID123456789";
+
+const mockedVerifyMessage = vi.mocked(verifyMessage);
+const MockedContract = vi.mocked(Contract);
+const MockedJsonRpcProvider = vi.mocked(JsonRpcProvider);
+
+function createValidPdfFile(
   name = "certificate.pdf",
-  size = 100,
 ): File {
-
-  const pdfHeader = new TextEncoder().encode("%PDF-");
-
-  const bytes = new Uint8Array(
-    Math.max(size, pdfHeader.length),
-  );
-
-  bytes.set(pdfHeader);
+  const pdfContent =
+    "%PDF-1.4\n" +
+    "1 0 obj\n" +
+    "<< /Type /Catalog >>\n" +
+    "endobj\n" +
+    "%%EOF";
 
   return new File(
-    [bytes],
+    [pdfContent],
     name,
     {
       type: "application/pdf",
@@ -48,46 +42,40 @@ function createPdfFile(
   );
 }
 
-function createRequest({
-  file = createPdfFile(),
-  address = VALID_ADDRESS,
-  timestamp = Date.now(),
-  signature = "valid-signature",
-  studentId = "STU-001",
-}: {
-  file?: File | null;
+function createFormRequest(options?: {
+  file?: File;
   address?: string;
   timestamp?: number;
   signature?: string;
   studentId?: string;
-} = {}) {
+}): Request {
   const formData = new FormData();
 
-  if (file) {
-    formData.append(
-      "file",
-      file,
-    );
-  }
+  formData.append(
+    "file",
+    options?.file ?? createValidPdfFile(),
+  );
 
   formData.append(
     "studentId",
-    studentId,
+    options?.studentId ?? "STU-001",
   );
 
   formData.append(
     "address",
-    address,
+    options?.address ?? TEST_ISSUER_ADDRESS,
   );
 
   formData.append(
     "timestamp",
-    timestamp.toString(),
+    String(
+      options?.timestamp ?? Date.now(),
+    ),
   );
 
   formData.append(
     "signature",
-    signature,
+    options?.signature ?? "valid-signature",
   );
 
   return new Request(
@@ -99,663 +87,500 @@ function createRequest({
   );
 }
 
-function mockPinataSuccess() {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          IpfsHash:
-            "bafy-test-certificate-cid",
-        }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-        },
-      ),
-    ),
+function setupAuthorizedIssuer() {
+  MockedJsonRpcProvider.mockImplementation(
+    vi.fn() as never,
+  );
+
+  MockedContract.mockImplementation(
+    vi.fn(
+      () =>
+        ({
+          ISSUER_ROLE: vi
+            .fn()
+            .mockResolvedValue(TEST_ROLE),
+
+          hasRole: vi
+            .fn()
+            .mockResolvedValue(true),
+        }) as never,
+    ) as never,
+  );
+
+  mockedVerifyMessage.mockReturnValue(
+    TEST_ISSUER_ADDRESS,
   );
 }
 
-describe(
-  "POST /api/pinata",
-  () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
+function setupNonAuthorizedIssuer() {
+  MockedJsonRpcProvider.mockImplementation(
+    vi.fn() as never,
+  );
 
-      process.env.PINATA_JWT =
-        "test-pinata-jwt";
+  MockedContract.mockImplementation(
+    vi.fn(
+      () =>
+        ({
+          ISSUER_ROLE: vi
+            .fn()
+            .mockResolvedValue(TEST_ROLE),
 
-      process.env.NEXT_PUBLIC_RPC_URL =
-        "http://localhost:8545";
+          hasRole: vi
+            .fn()
+            .mockResolvedValue(false),
+        }) as never,
+    ) as never,
+  );
 
-      process.env.NEXT_PUBLIC_CONTRACT_ADDRESS =
-        CONTRACT_ADDRESS;
+  mockedVerifyMessage.mockReturnValue(
+    TEST_NON_ISSUER_ADDRESS,
+  );
+}
 
-      mockedVerifyMessage.mockReturnValue(
-        VALID_ADDRESS,
+describe("POST /api/pinata", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    process.env.PINATA_JWT =
+      "test-pinata-jwt";
+
+    process.env.NEXT_PUBLIC_RPC_URL =
+      "https://example-rpc.test";
+
+    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS =
+      "0x3333333333333333333333333333333333333333";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(),
+    );
+  });
+
+  it("rejects a request when authentication data is missing", async () => {
+    const formData = new FormData();
+
+    formData.append(
+      "file",
+      createValidPdfFile(),
+    );
+
+    formData.append(
+      "studentId",
+      "STU-001",
+    );
+
+    const request = new Request(
+      "http://localhost/api/pinata",
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(data.error).toBe(
+      "Authentication data is missing.",
+    );
+  });
+
+  it("rejects an expired authentication request", async () => {
+    setupAuthorizedIssuer();
+
+    const expiredTimestamp =
+      Date.now() - 6 * 60 * 1000;
+
+    const request =
+      createFormRequest({
+        timestamp: expiredTimestamp,
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(data.error).toBe(
+      "Authentication request expired.",
+    );
+
+    expect(mockedVerifyMessage).not.toHaveBeenCalled();
+  });
+
+  it("rejects a future authentication timestamp outside the allowed clock skew", async () => {
+    setupAuthorizedIssuer();
+
+    const futureTimestamp =
+      Date.now() + 31 * 1000;
+
+    const request =
+      createFormRequest({
+        timestamp: futureTimestamp,
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(data.error).toBe(
+      "Authentication request expired.",
+    );
+
+    expect(mockedVerifyMessage).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid wallet signature", async () => {
+    setupAuthorizedIssuer();
+
+    mockedVerifyMessage.mockImplementation(
+      () => {
+        throw new Error(
+          "Invalid signature",
+        );
+      },
+    );
+
+    const request =
+      createFormRequest({
+        signature: "invalid-signature",
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(data.error).toBe(
+      "Invalid wallet signature.",
+    );
+  });
+
+  it("rejects a signature that does not belong to the claimed wallet address", async () => {
+    setupAuthorizedIssuer();
+
+    mockedVerifyMessage.mockReturnValue(
+      TEST_NON_ISSUER_ADDRESS,
+    );
+
+    const request =
+      createFormRequest({
+        address: TEST_ISSUER_ADDRESS,
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(data.error).toBe(
+      "Wallet authentication failed.",
+    );
+  });
+
+  it("rejects a wallet that does not have ISSUER_ROLE", async () => {
+    setupNonAuthorizedIssuer();
+
+    const request =
+      createFormRequest({
+        address: TEST_NON_ISSUER_ADDRESS,
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(data.error).toBe(
+      "This wallet is not authorized to upload academic credentials.",
+    );
+
+    expect(MockedContract).toHaveBeenCalled();
+  });
+
+  it("rejects a non-PDF file", async () => {
+    setupAuthorizedIssuer();
+
+    const nonPdfFile = new File(
+      ["this is not a pdf"],
+      "certificate.txt",
+      {
+        type: "text/plain",
+      },
+    );
+
+    const request =
+      createFormRequest({
+        file: nonPdfFile,
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(415);
+    expect(data.error).toBe(
+      "Only PDF files are allowed.",
+    );
+  });
+
+  it("rejects a file with a PDF extension but invalid PDF content", async () => {
+    setupAuthorizedIssuer();
+
+    const fakePdf = new File(
+      ["this is not really a PDF"],
+      "certificate.pdf",
+      {
+        type: "application/pdf",
+      },
+    );
+
+    const request =
+      createFormRequest({
+        file: fakePdf,
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(415);
+    expect(data.error).toBe(
+      "The uploaded file is not a valid PDF.",
+    );
+  });
+
+  it("rejects an empty file", async () => {
+    setupAuthorizedIssuer();
+
+    const emptyFile = new File(
+      [],
+      "empty.pdf",
+      {
+        type: "application/pdf",
+      },
+    );
+
+    const request =
+      createFormRequest({
+        file: emptyFile,
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe(
+      "The uploaded file is empty.",
+    );
+  });
+
+  it("rejects a file larger than 5 MB", async () => {
+    setupAuthorizedIssuer();
+
+    const header = "%PDF-";
+    const largeContent =
+      new Uint8Array(
+        5 * 1024 * 1024 + 1,
       );
 
-      mockIssuerRole.mockResolvedValue(
-        "0xISSUER_ROLE",
-      );
+    largeContent.set(
+      new TextEncoder().encode(header),
+      0,
+    );
 
-      mockHasRole.mockResolvedValue(
-        true,
-      );
+    const largeFile = new File(
+      [largeContent],
+      "large-certificate.pdf",
+      {
+        type: "application/pdf",
+      },
+    );
 
-      mockPinataSuccess();
+    const request =
+      createFormRequest({
+        file: largeFile,
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(413);
+    expect(data.error).toBe(
+      "The PDF file must not exceed 5 MB.",
+    );
+  });
+
+  it("rejects a request with an empty student ID", async () => {
+    setupAuthorizedIssuer();
+
+    const request =
+      createFormRequest({
+        studentId: "   ",
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe(
+      "Student ID is required.",
+    );
+  });
+
+  it("returns 503 when issuer authorization cannot be verified", async () => {
+    mockedVerifyMessage.mockReturnValue(
+      TEST_ISSUER_ADDRESS,
+    );
+
+    MockedJsonRpcProvider.mockImplementation(
+      vi.fn() as never,
+    );
+
+    MockedContract.mockImplementation(
+      vi.fn(
+        () => {
+          throw new Error(
+            "RPC unavailable",
+          );
+        },
+      ) as never,
+    );
+
+    const request =
+      createFormRequest();
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(data.error).toBe(
+      "Unable to verify issuer authorization.",
+    );
+  });
+
+  it("uploads a valid PDF for an authenticated and authorized issuer", async () => {
+    setupAuthorizedIssuer();
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            IpfsHash: TEST_CID,
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+          },
+        ),
+      ),
+    );
+
+    const request =
+      createFormRequest({
+        studentId: "STU-123",
+      });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+
+    expect(data).toEqual({
+      cid: TEST_CID,
+      gatewayUrl:
+        `https://gateway.pinata.cloud/ipfs/${TEST_CID}`,
     });
 
-    it(
-      "rejects a request without authentication data",
-      async () => {
-        const formData =
-          new FormData();
+    expect(fetch).toHaveBeenCalledTimes(1);
 
-        formData.append(
-          "file",
-          createPdfFile(),
-        );
+    const fetchMock =
+      vi.mocked(fetch);
 
-        formData.append(
-          "studentId",
-          "STU-001",
-        );
+    const [url, options] =
+      fetchMock.mock.calls[0];
 
-        const request =
-          new Request(
-            "http://localhost/api/pinata",
-            {
-              method: "POST",
-              body: formData,
-            },
-          );
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(401);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "Authentication data is required.",
-        );
-
-        expect(
-          global.fetch,
-        ).not.toHaveBeenCalledWith(
-          expect.stringContaining(
-            "pinata.cloud",
-          ),
-          expect.anything(),
-        );
-      },
+    expect(url).toBe(
+      "https://api.pinata.cloud/pinning/pinFileToIPFS",
     );
 
-    it(
-      "rejects an invalid wallet signature",
-      async () => {
-        mockedVerifyMessage.mockImplementation(
-          () => {
-            throw new Error(
-              "Invalid signature",
-            );
+    expect(options).toBeDefined();
+
+    expect(
+      (options as RequestInit).method,
+    ).toBe("POST");
+
+    const headers =
+      (options as RequestInit).headers as Record<
+        string,
+        string
+      >;
+
+    expect(
+      headers.Authorization,
+    ).toBe(
+      "Bearer test-pinata-jwt",
+    );
+
+    expect(
+      (options as RequestInit).body,
+    ).toBeInstanceOf(FormData);
+  });
+
+  it("returns 502 when Pinata rejects the upload", async () => {
+    setupAuthorizedIssuer();
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          "Pinata upload failed",
+          {
+            status: 500,
           },
-        );
-
-        const request =
-          createRequest();
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(401);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "Invalid wallet signature.",
-        );
-
-        expect(
-          mockHasRole,
-        ).not.toHaveBeenCalled();
-      },
+        ),
+      ),
     );
 
-    it(
-      "rejects when the recovered wallet does not match the supplied address",
-      async () => {
-        mockedVerifyMessage.mockReturnValue(
-          UNAUTHORIZED_ADDRESS,
-        );
+    const request =
+      createFormRequest();
 
-        const request =
-          createRequest();
+    const response = await POST(request);
+    const data = await response.json();
 
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(401);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "Wallet authentication failed.",
-        );
-
-        expect(
-          mockHasRole,
-        ).not.toHaveBeenCalled();
-      },
+    expect(response.status).toBe(502);
+    expect(data.error).toBe(
+      "Pinata upload failed",
     );
+  });
 
-    it(
-      "rejects an expired authentication request",
-      async () => {
-        const expiredTimestamp =
-          Date.now() -
-          10 * 60 * 1000;
+  it("returns 502 when Pinata returns success without an IPFS CID", async () => {
+    setupAuthorizedIssuer();
 
-        const request =
-          createRequest({
-            timestamp:
-              expiredTimestamp,
-          });
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(401);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "Authentication request expired.",
-        );
-
-        expect(
-          mockedVerifyMessage,
-        ).not.toHaveBeenCalled();
-
-        expect(
-          mockHasRole,
-        ).not.toHaveBeenCalled();
-      },
-    );
-
-    it(
-      "rejects a future timestamp outside the allowed clock-skew window",
-      async () => {
-        const futureTimestamp =
-          Date.now() +
-          10 * 60 * 1000;
-
-        const request =
-          createRequest({
-            timestamp:
-              futureTimestamp,
-          });
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(401);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "Authentication request expired.",
-        );
-
-        expect(
-          mockedVerifyMessage,
-        ).not.toHaveBeenCalled();
-
-        expect(
-          mockHasRole,
-        ).not.toHaveBeenCalled();
-      },
-    );
-
-    it(
-      "rejects a valid wallet that does not have ISSUER_ROLE",
-      async () => {
-        mockHasRole.mockResolvedValue(
-          false,
-        );
-
-        const request =
-          createRequest();
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(403);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "This wallet is not authorized to upload academic credentials.",
-        );
-
-        expect(
-          mockIssuerRole,
-        ).toHaveBeenCalled();
-
-        expect(
-          mockHasRole,
-        ).toHaveBeenCalledWith(
-          "0xISSUER_ROLE",
-          VALID_ADDRESS,
-        );
-
-        expect(
-          global.fetch,
-        ).not.toHaveBeenCalledWith(
-          expect.stringContaining(
-            "pinata.cloud",
-          ),
-          expect.anything(),
-        );
-      },
-    );
-
-    it(
-      "rejects a request without a file",
-      async () => {
-        const request =
-          createRequest({
-            file: null,
-          });
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(400);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "A PDF file is required.",
-        );
-
-        expect(
-          global.fetch,
-        ).not.toHaveBeenCalledWith(
-          expect.stringContaining(
-            "pinata.cloud",
-          ),
-          expect.anything(),
-        );
-      },
-    );
-
-    it(
-      "rejects a non-PDF file",
-      async () => {
-        const file =
-          new File(
-            ["not a pdf"],
-            "certificate.txt",
-            {
-              type: "text/plain",
-            },
-          );
-
-        const request =
-          createRequest({
-            file,
-          });
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(415);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "Only PDF files are allowed.",
-        );
-
-        expect(
-          global.fetch,
-        ).not.toHaveBeenCalledWith(
-          expect.stringContaining(
-            "pinata.cloud",
-          ),
-          expect.anything(),
-        );
-      },
-    );
-
-    it(
-      "rejects a file whose MIME type is PDF but whose content is not a PDF",
-      async () => {
-        const invalidPdf =
-          new File(
-            ["HELLO WORLD"],
-            "certificate.pdf",
-            {
-              type: "application/pdf",
-            },
-          );
-
-        const request =
-          createRequest({
-            file: invalidPdf,
-          });
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(415);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "The uploaded file is not a valid PDF.",
-        );
-
-        expect(
-          global.fetch,
-        ).not.toHaveBeenCalledWith(
-          expect.stringContaining(
-            "pinata.cloud",
-          ),
-          expect.anything(),
-        );
-      },
-    );
-
-    it(
-      "rejects a PDF larger than 5 MB",
-      async () => {
-        const largeFile =
-          createPdfFile(
-            "large-certificate.pdf",
-            5 * 1024 * 1024 + 1,
-          );
-
-        const request =
-          createRequest({
-            file: largeFile,
-          });
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(413);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "The PDF file must not exceed 5 MB.",
-        );
-
-        expect(
-          global.fetch,
-        ).not.toHaveBeenCalledWith(
-          expect.stringContaining(
-            "pinata.cloud",
-          ),
-          expect.anything(),
-        );
-      },
-    );
-
-    it(
-      "uploads a valid PDF from an authorized issuer",
-      async () => {
-        const request =
-          createRequest({
-            file:
-              createPdfFile(
-                "certificate.pdf",
-                100,
-              ),
-          });
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(200);
-
-        const body =
-          await response.json();
-
-        expect(body.cid).toBe(
-          "bafy-test-certificate-cid",
-        );
-
-        expect(
-          mockedVerifyMessage,
-        ).toHaveBeenCalled();
-
-        expect(
-          mockIssuerRole,
-        ).toHaveBeenCalled();
-
-        expect(
-          mockHasRole,
-        ).toHaveBeenCalledWith(
-          "0xISSUER_ROLE",
-          VALID_ADDRESS,
-        );
-
-        expect(
-          global.fetch,
-        ).toHaveBeenCalledWith(
-          "https://api.pinata.cloud/pinning/pinFileToIPFS",
-          expect.objectContaining({
-            method: "POST",
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({}),
+          {
+            status: 200,
             headers: {
-              Authorization:
-                "Bearer test-pinata-jwt",
+              "Content-Type":
+                "application/json",
             },
-          }),
-        );
-      },
-    );
-
-    it(
-      "does not upload to Pinata when authentication fails",
-      async () => {
-        mockedVerifyMessage.mockImplementation(
-          () => {
-            throw new Error(
-              "Invalid signature",
-            );
           },
-        );
-
-        const request =
-          createRequest();
-
-        await POST(request);
-
-        const fetchMock =
-          vi.mocked(global.fetch);
-
-        const pinataCalls =
-          fetchMock.mock.calls.filter(
-            ([url]) =>
-              String(url).includes(
-                "pinata.cloud",
-              ),
-          );
-
-        expect(
-          pinataCalls,
-        ).toHaveLength(0);
-      },
+        ),
+      ),
     );
 
-    it(
-      "does not upload to Pinata when authorization fails",
-      async () => {
-        mockHasRole.mockResolvedValue(
-          false,
-        );
+    const request =
+      createFormRequest();
 
-        const request =
-          createRequest();
+    const response = await POST(request);
+    const data = await response.json();
 
-        await POST(request);
-
-        const fetchMock =
-          vi.mocked(global.fetch);
-
-        const pinataCalls =
-          fetchMock.mock.calls.filter(
-            ([url]) =>
-              String(url).includes(
-                "pinata.cloud",
-              ),
-          );
-
-        expect(
-          pinataCalls,
-        ).toHaveLength(0);
-      },
+    expect(response.status).toBe(502);
+    expect(data.error).toBe(
+      "Pinata returned an invalid response.",
     );
-
-    it(
-      "returns the CID returned by Pinata",
-      async () => {
-        const pinataFetch =
-          vi.fn().mockResolvedValue(
-            new Response(
-              JSON.stringify({
-                IpfsHash:
-                  "bafy-another-test-cid",
-              }),
-              {
-                status: 200,
-                headers: {
-                  "Content-Type":
-                    "application/json",
-                },
-              },
-            ),
-          );
-
-        vi.stubGlobal(
-          "fetch",
-          pinataFetch,
-        );
-
-        const request =
-          createRequest();
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(200);
-
-        const body =
-          await response.json();
-
-        expect(body.cid).toBe(
-          "bafy-another-test-cid",
-        );
-      },
-    );
-
-    it(
-      "returns an error when Pinata fails",
-      async () => {
-        vi.stubGlobal(
-          "fetch",
-          vi.fn().mockResolvedValue(
-            new Response(
-              "Pinata service unavailable",
-              {
-                status: 500,
-              },
-            ),
-          ),
-        );
-
-        const request =
-          createRequest();
-
-        const response =
-          await POST(request);
-
-        expect(
-          response.status,
-        ).toBe(502);
-
-        const body =
-          await response.json();
-
-        expect(body.error).toBe(
-          "Pinata service unavailable",
-        );
-      },
-    );
-
-    it(
-      "does not expose the Pinata JWT in the response",
-      async () => {
-        const request =
-          createRequest();
-
-        const response =
-          await POST(request);
-
-        const responseText =
-          JSON.stringify(
-            await response.json(),
-          );
-
-        expect(
-          responseText,
-        ).not.toContain(
-          "test-pinata-jwt",
-        );
-      },
-    );
-  },
-);
+  });
+});
