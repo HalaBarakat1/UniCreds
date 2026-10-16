@@ -104,7 +104,7 @@ export interface UniversityInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "issueCertificate",
-    values: [BytesLike, AddressLike, string, string, string, string]
+    values: [AddressLike, string, string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "registerUniversity",
@@ -440,14 +440,13 @@ export interface University extends BaseContract {
 
   issueCertificate: TypedContractMethod<
     [
-      _certHash: BytesLike,
       _student: AddressLike,
       _studentId: string,
       _major: string,
       _gpa: string,
       _ipfsCID: string
     ],
-    [void],
+    [string],
     "nonpayable"
   >;
 
@@ -581,14 +580,13 @@ export interface University extends BaseContract {
     nameOrSignature: "issueCertificate"
   ): TypedContractMethod<
     [
-      _certHash: BytesLike,
       _student: AddressLike,
       _studentId: string,
       _major: string,
       _gpa: string,
       _ipfsCID: string
     ],
-    [void],
+    [string],
     "nonpayable"
   >;
   getFunction(

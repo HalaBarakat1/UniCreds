@@ -1,6 +1,34 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { University } from "../typechain-types";
+
+// Sends issueCertificate and returns the commitment hash that the contract
+// computed, read from the CertificateIssued event in the transaction receipt.
+async function issueAndGetHash(
+  university: University,
+  issuer: HardhatEthersSigner,
+  student: string,
+  studentId: string,
+  major: string,
+  gpa: string,
+  cid: string,
+): Promise<string> {
+  const tx = await university
+    .connect(issuer)
+    .issueCertificate(student, studentId, major, gpa, cid);
+  const receipt = await tx.wait();
+
+  for (const log of receipt!.logs) {
+    const parsed = university.interface.parseLog(log);
+    if (parsed?.name === "CertificateIssued") {
+      return parsed.args.certHash as string;
+    }
+  }
+
+  throw new Error("CertificateIssued event not found");
+}
 
 describe("University Comprehensive Test Suite", function () {
   async function deployUniversityFixture() {
@@ -91,12 +119,11 @@ describe("University Comprehensive Test Suite", function () {
       const { university, otherAccount, student } = await loadFixture(
         deployUniversityFixture,
       );
-      const fakeHash = ethers.id("FakeCert");
 
       await expect(
         university
           .connect(otherAccount)
-          .issueCertificate(fakeHash, student.address, "ID", "Major", "3.0", "QmFakeCid"),
+          .issueCertificate(student.address, "ID", "Major", "3.0", "QmFakeCid"),
       ).to.be.revertedWithCustomError(university, "AccessControlUnauthorizedAccount");
     });
   });
@@ -130,7 +157,7 @@ describe("University Comprehensive Test Suite", function () {
       expect(contractHash).to.equal(expectedHash);
     });
 
-    it("Should successfully issue a certificate", async function () {
+    it("Should successfully issue a certificate and compute its hash on-chain", async function () {
       const { university, admin, issuer, student } = await loadFixture(
         deployUniversityFixture,
       );
@@ -139,7 +166,8 @@ describe("University Comprehensive Test Suite", function () {
       await university
         .connect(admin)
         .registerUniversity(issuer.address, "Tech University", "Silicon Valley");
-      const certHash = await university.generateCertificateHash(
+
+      const expectedHash = await university.generateCertificateHash(
         issuer.address,
         student.address,
         "ID-2026",
@@ -149,14 +177,22 @@ describe("University Comprehensive Test Suite", function () {
         await university.certificateCounter(),
       );
 
+      expect(
+        await university
+          .connect(issuer)
+          .issueCertificate.staticCall(student.address, "ID-2026", "Computer Engineering", "3.95", cid),
+      ).to.equal(expectedHash);
+
       await expect(
-        university.connect(issuer).issueCertificate(certHash, student.address, "ID-2026", "Computer Engineering", "3.95", cid),
+        university
+          .connect(issuer)
+          .issueCertificate(student.address, "ID-2026", "Computer Engineering", "3.95", cid),
       )
         .to.emit(university, "CertificateIssued")
-        .withArgs(certHash, student.address, cid);
+        .withArgs(expectedHash, student.address, cid);
     });
 
-    it("Should increment the certificate counter and allow identical data with a new counter", async function () {
+    it("Should increment the certificate counter and allow identical data to be issued again", async function () {
       const { university, admin, issuer, student } = await loadFixture(
         deployUniversityFixture,
       );
@@ -169,34 +205,16 @@ describe("University Comprehensive Test Suite", function () {
         .connect(admin)
         .registerUniversity(issuer.address, "Tech University", "Silicon Valley");
 
-      const firstHash = await university.generateCertificateHash(
-        issuer.address,
-        student.address,
-        studentId,
-        major,
-        gpa,
-        cid,
-        await university.certificateCounter(),
+      const firstHash = await issueAndGetHash(
+        university, issuer, student.address, studentId, major, gpa, cid,
       );
-      await university
-        .connect(issuer)
-        .issueCertificate(firstHash, student.address, studentId, major, gpa, cid);
       expect(await university.certificateCounter()).to.equal(1n);
 
-      const secondHash = await university.generateCertificateHash(
-        issuer.address,
-        student.address,
-        studentId,
-        major,
-        gpa,
-        cid,
-        await university.certificateCounter(),
+      const secondHash = await issueAndGetHash(
+        university, issuer, student.address, studentId, major, gpa, cid,
       );
-      expect(secondHash).to.not.equal(firstHash);
-      await university
-        .connect(issuer)
-        .issueCertificate(secondHash, student.address, studentId, major, gpa, cid);
       expect(await university.certificateCounter()).to.equal(2n);
+      expect(secondHash).to.not.equal(firstHash);
     });
 
     it("Should accurately retrieve certificate data and issuer identity", async function () {
@@ -208,16 +226,10 @@ describe("University Comprehensive Test Suite", function () {
       await university
         .connect(admin)
         .registerUniversity(issuer.address, "Tech University", "Silicon Valley");
-      const certHash = await university.generateCertificateHash(
-        issuer.address,
-        student.address,
-        "ID-2026",
-        "Computer Engineering",
-        "3.95",
-        cid,
-        await university.certificateCounter(),
+
+      const certHash = await issueAndGetHash(
+        university, issuer, student.address, "ID-2026", "Computer Engineering", "3.95", cid,
       );
-      await university.connect(issuer).issueCertificate(certHash, student.address, "ID-2026", "Computer Engineering", "3.95", cid);
 
       const [isValid, studentAddr, issueDate, issuerAddr, ipfsCID] =
         await university.verifyCertificate(certHash);
@@ -239,16 +251,10 @@ describe("University Comprehensive Test Suite", function () {
       await university
         .connect(admin)
         .registerUniversity(issuer.address, "Tech University", "Silicon Valley");
-      const certHash = await university.generateCertificateHash(
-        issuer.address,
-        student.address,
-        "ID-2026",
-        "Computer Engineering",
-        "3.95",
-        cid,
-        await university.certificateCounter(),
+
+      const certHash = await issueAndGetHash(
+        university, issuer, student.address, "ID-2026", "Computer Engineering", "3.95", cid,
       );
-      await university.connect(issuer).issueCertificate(certHash, student.address, "ID-2026", "Computer Engineering", "3.95", cid);
 
       await expect(university.connect(issuer).revokeCertificate(certHash, reason))
         .to.emit(university, "CertificateRevoked")
@@ -277,7 +283,6 @@ describe("University Comprehensive Test Suite", function () {
       const { university, admin, issuer, student } = await loadFixture(
         deployUniversityFixture,
       );
-      const certHash = ethers.id("SuspendedTest");
 
       await university
         .connect(admin)
@@ -289,8 +294,44 @@ describe("University Comprehensive Test Suite", function () {
       await expect(
         university
           .connect(issuer)
-          .issueCertificate(certHash, student.address, "ID-2026", "Computer Engineering", "3.95", "QmSuspendedCid"),
+          .issueCertificate(student.address, "ID-2026", "Computer Engineering", "3.95", "QmSuspendedCid"),
       ).to.be.revertedWithCustomError(university, "AccessControlUnauthorizedAccount");
+    });
+  });
+
+  describe("3. Concurrency", function () {
+    it("Should let 15 different universities issue certificates in the same block", async function () {
+      const { university, admin, student } = await loadFixture(deployUniversityFixture);
+      const issuers = (await ethers.getSigners()).slice(4, 19);
+
+      for (const [i, uni] of issuers.entries()) {
+        await university.connect(admin).registerUniversity(uni.address, `University ${i}`, "Damascus");
+      }
+
+      await network.provider.send("evm_setAutomine", [false]);
+      try {
+        // A fixed gas limit skips gas estimation, so every transaction reaches the
+        // mempool and all of them are mined together in one block.
+        const txs = await Promise.all(
+          issuers.map((uni, i) =>
+            university
+              .connect(uni)
+              .issueCertificate(student.address, `STU-${i}`, "Computer Engineering", "3.50", `QmCid${i}`, {
+                gasLimit: 300_000,
+              }),
+          ),
+        );
+
+        await network.provider.send("evm_mine", []);
+        const receipts = await Promise.all(txs.map((tx) => tx.wait()));
+
+        const blocks = new Set(receipts.map((r) => r!.blockNumber));
+        expect(blocks.size).to.equal(1);
+        expect(receipts.every((r) => r!.status === 1)).to.equal(true);
+        expect(await university.certificateCounter()).to.equal(15n);
+      } finally {
+        await network.provider.send("evm_setAutomine", [true]);
+      }
     });
   });
 });

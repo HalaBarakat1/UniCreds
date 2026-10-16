@@ -110,11 +110,17 @@ This design prevents collisions when:
 - Two credentials have the same major and GPA.
 - The same credential data is issued more than once.
 
+The hash is computed inside `issueCertificate`, in the same transaction that
+increments `certificateCounter`, so clients never read the counter in advance.
+This lets different universities issue certificates at the same time (even in
+the same block) without conflicting. The contract returns the hash and emits it
+in the `CertificateIssued` event, where the frontend and scripts read it.
+
 The hash is generated in the smart contract using:
 
 ```solidity
 keccak256(
-    abi.encodePacked(
+    abi.encode(
         issuerAddress,
         studentAddress,
         studentId,

@@ -18,21 +18,9 @@ async function main() {
   const start = Date.now();
 
   for (let i = 0; i < ITERATIONS; i++) {
-    const counter = await university.certificateCounter();
-    const certHash = await university.generateCertificateHash(
-      issuer.address,
-      student.address,
-      `STU-${i}`,
-      "Computer Engineering",
-      "90",
-      `cidPlaceholder${i}`,
-      counter
-    );
-
     const tx = await university
       .connect(issuer)
       .issueCertificate(
-        certHash,
         student.address,
         `STU-${i}`,
         "Computer Engineering",

@@ -16,7 +16,7 @@ async function uploadFileToIPFS(filePath: string) {
         const data = new FormData();
         data.append("file", fs.createReadStream(filePath));
 
-        // Add metadata to organize the file in your Pinata dashboard
+        // Add metadata to organize the file in Pinata dashboard
         const metadata = JSON.stringify({
             name: "Test_Student_Certificate",
         });

@@ -107,16 +107,15 @@ contract University is AccessControl {
     }
 
     function issueCertificate(
-        bytes32 _certHash,
         address _student,
         string memory _studentId,
         string memory _major,
         string memory _gpa,
         string memory _ipfsCID
-    ) public onlyRole(ISSUER_ROLE) {
+    ) public onlyRole(ISSUER_ROLE) returns (bytes32 certHash) {
         require(universityRegistry[msg.sender].isActive == true, "Issuer is suspended in registry");
 
-        bytes32 expectedHash = generateCertificateHash(
+        certHash = generateCertificateHash(
             msg.sender,
             _student,
             _studentId,
@@ -126,12 +125,11 @@ contract University is AccessControl {
             certificateCounter
         );
 
-        require(_certHash == expectedHash, "Invalid certificate hash");
-        require(certificates[_certHash].issueDate == 0, "Certificate hash already exists");
+        require(certificates[certHash].issueDate == 0, "Certificate hash already exists");
 
-        certificates[_certHash] = Certificate({
+        certificates[certHash] = Certificate({
             student: _student,
-            commitmentHash: _certHash,
+            commitmentHash: certHash,
             ipfsCID: _ipfsCID,
             isValid: true,
             issueDate: block.timestamp,
@@ -140,7 +138,7 @@ contract University is AccessControl {
 
         certificateCounter += 1;
 
-        emit CertificateIssued(_certHash, _student, _ipfsCID);
+        emit CertificateIssued(certHash, _student, _ipfsCID);
     }
 
     function revokeCertificate(bytes32 _certHash, string memory _reason)

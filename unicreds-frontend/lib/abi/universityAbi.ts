@@ -423,11 +423,6 @@ export const universityAbi = [
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_certHash",
-        "type": "bytes32"
-      },
-      {
         "internalType": "address",
         "name": "_student",
         "type": "address"
@@ -454,7 +449,13 @@ export const universityAbi = [
       }
     ],
     "name": "issueCertificate",
-    "outputs": [],
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "certHash",
+        "type": "bytes32"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },

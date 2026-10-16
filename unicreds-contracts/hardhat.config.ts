@@ -14,6 +14,11 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    hardhat: {
+      accounts: {
+        count: 40,
+      },
+    },
     localhost: {
       url: "http://127.0.0.1:8545",
     },

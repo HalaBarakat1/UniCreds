@@ -48,25 +48,11 @@ async function main() {
   const university = await ethers.getContractAt("University", contractAddress);
 
   const [issuer] = await ethers.getSigners();
-  const certificateCounter = await university.certificateCounter();
-
-  console.log("Generating cryptographic commitment hash for issuer, student data, CID, and certificate counter...");
   console.log(`Issuer Address: ${issuer.address}`);
-  console.log(`Certificate Counter: ${certificateCounter}`);
-  const commitmentHash = await university.generateCertificateHash(
-    issuer.address,
-    studentAddress,
-    studentId,
-    major,
-    gpa,
-    cid,
-    certificateCounter,
-  );
-  console.log(`Commitment Hash: ${commitmentHash}`);
 
   console.log("\nSending issuance transaction to the blockchain...");
+  console.log("(The contract computes the commitment hash on-chain from the issuer, student data, CID, and certificate counter.)");
   const tx = await university.issueCertificate(
-    commitmentHash,
     studentAddress,
     studentId,
     major,
@@ -77,7 +63,16 @@ async function main() {
   console.log(`Waiting for block confirmation... (Transaction Hash: ${tx.hash})`);
   const receipt = await tx.wait();
 
+  let commitmentHash = "";
+  for (const log of receipt?.logs ?? []) {
+    const parsed = university.interface.parseLog(log);
+    if (parsed?.name === "CertificateIssued") {
+      commitmentHash = parsed.args.certHash as string;
+    }
+  }
+
   console.log("\nSuccess! Academic credential anchored permanently on-chain.");
+  console.log(`Commitment Hash: ${commitmentHash}`);
   console.log(`Included in Block Number: ${receipt?.blockNumber}`);
 }
 
